@@ -1,0 +1,16 @@
+course_id,course_name,instructor,credits,schedule
+101,Algebra I,Tom Tom,3.0,MWF 09:00-10:00
+102,Algebra II,Tom Tom,3.0,MWF 10:00-11:00
+103,Algebra III,Tom Tom,3.0,MWF 11:00-12:00
+104,Geometry I,Kaspian Thomas,3.0,TTh 09:00-10:30
+105,Geometry II,Kaspian Thomas,3.0,TTh 10:30-12:00
+106,Geometry III,Kaspian Thomas,3.0,TTh 01:00-02:30
+107,History,Bob Bob,3.0,MWF 01:00-02:00
+108,Art,Bob Bob,2.0,TTh 02:00-03:30
+109,Science,Tom Tom,4.0,MWF 02:00-03:30
+110,English I,Kaspian Thomas,3.0,MWF 08:00-09:00
+111,English II,Kaspian Thomas,3.0,MWF 09:00-10:00
+112,English III,Kaspian Thomas,3.0,MWF 10:00-11:00
+113,P.E.,Bob Bob,1.0,TTh 03:30-04:30
+114,Biology,Tom Tom,4.0,MWF 03:30-05:00
+115,World Literature,Kaspian Thomas,3.0,TTh 01:00-02:30
