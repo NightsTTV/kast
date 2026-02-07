@@ -2,6 +2,8 @@ function App() {
   const Calendar = new Date();
   const time = Calendar.toLocaleTimeString();
   const day = Calendar.toLocaleDateString();
+
+  
   // Welcome Message Logic
   let message = "Welcome To MedPet!";
   if (Math.random() <= 0.5) {
