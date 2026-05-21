@@ -1,1 +1,16 @@
 @import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer utilities {
+  .text-outline-black {
+    color: #0f172a;
+    -webkit-text-stroke: 2px #fff;
+    paint-order: stroke fill;
+  }
+
+  .dark .text-outline-black {
+    color: #fff;
+    -webkit-text-stroke: 2px #000;
+  }
+}
