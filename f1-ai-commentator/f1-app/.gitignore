@@ -1,0 +1,19 @@
+# Secrets / local config
+.env
+
+# FastF1 cache (~470 MB, re-downloaded on demand) and the SQLite DB
+# (regenerable via: python backend/load_history.py)
+data/cache/
+data/*.db
+data/*.db-shm
+data/*.db-wal
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+
+# OS
+.DS_Store

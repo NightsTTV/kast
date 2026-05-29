@@ -1,0 +1,21 @@
+# Core data
+fastf1
+pandas
+
+# Snapshot contract
+pydantic
+
+# HTTP client (Langflow send)
+requests
+python-dotenv
+
+# Backend (Phase 4)
+fastapi
+uvicorn[standard]
+websockets
+
+# LLM commentary (Phase 3 — provider TBD)
+anthropic
+
+# Utilities
+python-dotenv
