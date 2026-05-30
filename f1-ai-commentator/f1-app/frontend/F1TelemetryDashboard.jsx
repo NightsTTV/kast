@@ -27,6 +27,18 @@ const TEAM_COLORS = {
 };
 const teamColor = (code) => TEAM_COLORS[code] || '#8b8b8b';
 
+// 3-letter code -> full name (2022-2026 grids). Falls back to the code itself.
+const DRIVER_NAMES = {
+  VER: 'Max Verstappen', PER: 'Sergio Pérez', HAM: 'Lewis Hamilton', RUS: 'George Russell',
+  LEC: 'Charles Leclerc', SAI: 'Carlos Sainz', ALO: 'Fernando Alonso', STR: 'Lance Stroll',
+  NOR: 'Lando Norris', PIA: 'Oscar Piastri', GAS: 'Pierre Gasly', OCO: 'Esteban Ocon',
+  ALB: 'Alexander Albon', SAR: 'Logan Sargeant', BOT: 'Valtteri Bottas', ZHO: 'Zhou Guanyu',
+  MAG: 'Kevin Magnussen', HUL: 'Nico Hülkenberg', TSU: 'Yuki Tsunoda', RIC: 'Daniel Ricciardo',
+  LAW: 'Liam Lawson', DEV: 'Nyck de Vries', ANT: 'Andrea Kimi Antonelli', BEA: 'Oliver Bearman',
+  BOR: 'Gabriel Bortoleto', COL: 'Franco Colapinto', HAD: 'Isack Hadjar', LIN: 'Arvid Lindblad',
+};
+const driverName = (code) => DRIVER_NAMES[code] || code;
+
 const COMPOUND_COLORS = {
   SOFT: '#ff3b3b', MEDIUM: '#ffd23b', HARD: '#e8e8e8',
   INTERMEDIATE: '#3bd16f', WET: '#3b8bff',
@@ -164,6 +176,15 @@ export default function F1Dashboard() {
     } catch { /* ignore */ }
   }, []);
 
+  const [resetting, setResetting] = useState(false);
+  const resetRace = useCallback(async () => {
+    setResetting(true);
+    // Clear the UI immediately; new lap-1 telemetry will repopulate it.
+    setFeed([]); setRaceFinished(false); setLatestTelemetry(null); setStandings([]);
+    try { await fetch(`${API}/api/reset`, { method: 'POST' }); } catch { /* ignore */ }
+    setTimeout(() => setResetting(false), 2500);   // backend reloads the session
+  }, []);
+
   const latestFeed = feed[0] || null;
 
   return (
@@ -183,6 +204,12 @@ export default function F1Dashboard() {
                   style={{ background: connected ? '#3bd16f' : '#e10600' }} />
             <span className="text-white/60">{connected ? 'LIVE' : 'OFFLINE'}</span>
           </div>
+          <button onClick={resetRace} disabled={resetting}
+                  className="px-3 py-1.5 rounded text-xs font-bold tracking-widest transition-opacity"
+                  style={{ background: resetting ? '#444' : '#e10600', color: '#fff',
+                           cursor: resetting ? 'default' : 'pointer', opacity: resetting ? 0.7 : 1 }}>
+            {resetting ? 'RESETTING…' : 'RESET RACE'}
+          </button>
         </div>
       </header>
 
@@ -305,7 +332,7 @@ export default function F1Dashboard() {
                style={{ background: '#15151f' }} onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-lg font-bold">
-                <span style={{ color: teamColor(selected.driver) }}>{selected.driver}</span>
+                <span style={{ color: teamColor(selected.driver) }}>{driverName(selected.driver)}</span>
                 <span className="text-white/40 text-sm ml-2">{selected.track}</span>
               </h3>
               <button className="text-white/40 hover:text-white" onClick={() => setSelected(null)}>✕</button>

@@ -145,6 +145,10 @@ async def replay_loop() -> None:
     session = os.getenv("REPLAY_SESSION", "R")
     tick    = float(os.getenv("REPLAY_TICK_S", "2.0"))
 
+    # Fresh slate — matters when this loop is restarted by POST /api/reset.
+    standings.clear()
+    state.update(running=False, current_lap=0, total_laps=0, triggers_fired=0, poller=None)
+
     # ReplayPoller.__init__ runs a blocking FastF1 sess.load(); do it off-loop.
     # tick_s=0 disables the poller's internal time.sleep — we pace in async below.
     log.info("Loading replay %s round %s %s ...", year, rnd, session)
@@ -208,16 +212,32 @@ async def replay_loop() -> None:
     await broadcast({"type": "RACE_FINISHED", "payload": {}})
 
 
+# The single replay background task. Held module-level so /api/reset can cancel
+# and restart it.
+replay_task: "asyncio.Task | None" = None
+
+
+def start_replay() -> None:
+    global replay_task
+    replay_task = asyncio.create_task(replay_loop())
+
+
+async def stop_replay() -> None:
+    global replay_task
+    if replay_task and not replay_task.done():
+        replay_task.cancel()
+        with contextlib.suppress(asyncio.CancelledError):
+            await replay_task
+
+
 @contextlib.asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-    task = asyncio.create_task(replay_loop())
+    start_replay()
     log.info("Replay background task started.")
     try:
         yield
     finally:
-        task.cancel()
-        with contextlib.suppress(asyncio.CancelledError):
-            await task
+        await stop_replay()
         log.info("Replay background task stopped.")
 
 
@@ -249,6 +269,16 @@ async def api_status():
         "connected_clients": len(clients),
         "triggers_fired":    state["triggers_fired"],
     }
+
+
+@app.post("/api/reset")
+async def api_reset():
+    """Restart the replay from lap 1: cancel the running loop and start a fresh one.
+    The new loop clears standings/state, so clients re-fill from the first lap."""
+    await stop_replay()
+    start_replay()
+    log.info("Race reset — replay restarting from lap 1.")
+    return {"ok": True, "message": "race reset"}
 
 
 @app.get("/api/standings")
