@@ -4,7 +4,12 @@ Langflow ingestion seam.
 Verified against Langflow docs (2025):
   POST /api/v1/run/{flow_id}?stream=false
   Header:  x-api-key: <key>
-  Body:    { "input_value": "<json string>", "input_type": "text", "output_type": "chat" }
+  Body:    { "input_value": "<json string>", "input_type": "chat", "output_type": "chat" }
+           input_type MUST be "chat": the flow's input is a ChatInput component, so
+           "chat" routes input_value into it. With "text" Langflow looks for a
+           TextInput, finds none, and the prompt variable stays empty — the model
+           then hallucinates with no event data. (Diagnosed 2026-05; this was the
+           "Ollama timeout/JSON" bug — the data never reached the model.)
   Response path to text: outputs[0].outputs[0].results.message.text
 
 All config lives in env vars — nothing is hardcoded here.
@@ -67,7 +72,7 @@ def send(packet: dict) -> dict:
     }
     payload = {
         "input_value": json.dumps(packet),
-        "input_type": "text",
+        "input_type": "chat",   # routes into the flow's ChatInput; "text" leaves it empty
         "output_type": "chat",
     }
 
@@ -80,7 +85,7 @@ def send(packet: dict) -> dict:
     except requests.HTTPError as exc:
         log.error(
             "Langflow HTTP %s for lap=%s driver=%s — %s",
-            exc.response.status_code, lap, driver, exc.response.text[:300],
+            exc.response.status_code, lap, driver, exc.response.text[:500],
         )
     except requests.Timeout:
         log.error("Langflow timeout after %ss for lap=%s driver=%s", _TIMEOUT_S, lap, driver)

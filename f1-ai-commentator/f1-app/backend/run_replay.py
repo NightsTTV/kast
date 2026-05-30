@@ -23,6 +23,7 @@ Env vars (see .env.example):
     LANGFLOW_URL, LANGFLOW_FLOW_ID, LANGFLOW_API_KEY
 """
 import argparse
+import json
 import logging
 import sys
 from collections import Counter
@@ -90,19 +91,27 @@ def main():
 
         for trig in fired:
             triggers_fired[trig.name] += 1
+
+            # 1) Data going INTO commentary.assemble(): the fired trigger + raw
+            #    snapshot, before any DB enrichment.
+            commentary_in = {
+                "trigger":      trig.name,
+                "trigger_data": trig.data,
+                "snapshot":     snap,
+            }
+            log.info("commentary IN  → %s", json.dumps(commentary_in, default=str))
+
+            # The enriched packet: snapshot + historical DB context.
             packet = assemble(trig, snap, track_name)
 
-            log.info(
-                "🔔 LAP %3d | %-3s | %-14s | %s",
-                snapshot.lap_num, driver, trig.name, _summarise(trig),
-            )
-
             if not args.dry_run:
+                # 2) Data going INTO Langflow: the enriched packet (= input_value).
+                log.info("langflow   IN  → %s", json.dumps(packet, default=str))
                 response = lf.send(packet)
-                text = lf.extract_text(response)
                 commentary_calls += 1
-                if text:
-                    log.info("   ↳ %s", text)
+                # 3) What actually comes out of the language model.
+                text = lf.extract_text(response)
+                log.info("commentary OUT → %s", text if text is not None else "(no text extracted)")
 
         if args.max_laps and laps_seen >= args.max_laps:
             log.info("--max-laps %d reached, stopping.", args.max_laps)
@@ -119,20 +128,6 @@ def main():
     if laps_seen:
         log.info("Gating ratio: %.1f%% of laps produced commentary",
                  100 * total_fired / laps_seen)
-
-
-def _summarise(trig) -> str:
-    """One-line human summary of a fired trigger's payload for the console."""
-    d = trig.data
-    if trig.name in ("fast_lap", "slow_lap"):
-        return f"{d.get('current_ms')}ms vs avg {d.get('buffer_avg_ms')}ms ({d.get('delta_pct')}%)"
-    if trig.name == "sector_outlier":
-        return f"{d.get('sector')} {d.get('current_ms')}ms vs best {d.get('benchmark_ms')}ms (+{d.get('delta_pct')}%)"
-    if trig.name == "pit_anomaly":
-        return f"{d.get('direction')} pit {d.get('current_ms')}ms vs avg {d.get('avg_ms')}ms ({d.get('delta_pct')}%)"
-    if trig.name == "drs_battle":
-        return f"gap {d.get('gap_ahead_ms')}ms"
-    return str(d)
 
 
 if __name__ == "__main__":
