@@ -32,6 +32,26 @@ def _endpoint() -> str:
     return f"{_BASE_URL}/api/v1/run/{_FLOW_ID}?stream=false"
 
 
+def _ms_to_seconds(obj):
+    """Recursively convert every `*_ms` field to `*_s` in seconds (3 dp).
+
+    The LLM should never see milliseconds — otherwise it parrots raw ms values
+    into the commentary. We convert here, at the LLM seam only; the WebSocket /
+    frontend path keeps milliseconds and formats them itself.
+    """
+    if isinstance(obj, dict):
+        out = {}
+        for k, v in obj.items():
+            if k.endswith("_ms"):
+                out[k[:-3] + "_s"] = round(v / 1000, 3) if isinstance(v, (int, float)) else v
+            else:
+                out[k] = _ms_to_seconds(v)
+        return out
+    if isinstance(obj, list):
+        return [_ms_to_seconds(x) for x in obj]
+    return obj
+
+
 def _ident(packet: dict) -> tuple:
     """
     Pull (lap, driver) for logging, tolerating either payload shape:
@@ -71,7 +91,7 @@ def send(packet: dict) -> dict:
         "x-api-key": _API_KEY,
     }
     payload = {
-        "input_value": json.dumps(packet),
+        "input_value": json.dumps(_ms_to_seconds(packet)),  # LLM sees seconds, never ms
         "input_type": "chat",   # routes into the flow's ChatInput; "text" leaves it empty
         "output_type": "chat",
     }

@@ -7,16 +7,8 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
+        sans: ['"Outfit"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'sans-serif'],
         mono: ['"Courier New"', '"Courier"', 'monospace'],
-      },
-      animation: {
-        pulse: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-      },
-      keyframes: {
-        pulse: {
-          '0%, 100%': { opacity: '1' },
-          '50%': { opacity: '.5' },
-        },
       },
     },
   },

@@ -2,19 +2,39 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Design Tokens (Emil Kowalski easing curves) ─────────────────────────── */
+:root {
+  /* Strong ease-out for UI interactions (Emil) */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  /* Strong ease-in-out for on-screen movement (Emil) */
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  /* Consistent corner-radius scale (Taste-skill: shape consistency lock) */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  /* Tinted shadow base — cool-tinted, never pure black (Redesign-skill) */
+  --shadow-color: 220 60% 4%;
+}
+
+/* ── Reset ────────────────────────────────────────────────────────────────── */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
+/* ── Base typography (Taste-skill: replace browser defaults) ──────────────── */
 body {
-  background-color: #000;
+  background-color: #0a0a0f;
   color: #fff;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Courier New', monospace;
+  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Custom scrollbar */
+/* ── Scrollbar (preserved) ────────────────────────────────────────────────── */
 ::-webkit-scrollbar {
   width: 4px;
 }
@@ -24,10 +44,283 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #444;
+  background: #333;
   border-radius: 2px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #666;
+  background: #555;
 }
+
+/* ── Button tactile feedback (Emil + Taste-skill + Redesign-skill) ──────── */
+/* Every pressable element must acknowledge the press.                        */
+/* scale(0.97) on :active gives instant physical feedback.                    */
+.btn-press {
+  transition: transform 160ms var(--ease-out),
+              background-color 160ms var(--ease-out),
+              opacity 160ms var(--ease-out);
+  will-change: transform;
+}
+
+.btn-press:active {
+  transform: scale(0.97);
+}
+
+.btn-press:disabled {
+  cursor: not-allowed;
+  pointer-events: auto;  /* allow cursor change even when disabled */
+}
+
+/* Close / icon button variant — slightly more dramatic press */
+.btn-icon-press {
+  transition: color 120ms var(--ease-out),
+              transform 120ms var(--ease-out);
+}
+
+.btn-icon-press:hover {
+  color: #fff;
+}
+
+.btn-icon-press:active {
+  transform: scale(0.9);
+}
+
+/* ── Standing row hover transition (Emil + Redesign-skill) ────────────────
+   Instant background swap feels abrupt. A short cross-fade adds polish.    */
+.row-hover {
+  transition: background-color 120ms var(--ease-out);
+}
+
+/* ── Connection status dot transition (Emil) ──────────────────────────────
+   State changes on indicators should never be instant.                     */
+.status-dot {
+  transition: background-color 300ms var(--ease-out);
+}
+
+/* ── Modal entrance animation (Emil: never appear from nothing) ───────────
+   scale(0.95) + opacity:0 → scale(1) + opacity:1 at 200ms ease-out.
+   Modals use transform-origin: center (correct per Emil).                  */
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.modal-enter {
+  animation: modal-in 200ms var(--ease-out) forwards;
+}
+
+/* Backdrop fade (Emil: backdrop flash without fade is jarring) */
+@keyframes backdrop-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.backdrop-enter {
+  animation: backdrop-fade 150ms var(--ease-out) forwards;
+}
+
+/* ── Commentary feed item entrance (Emil + Taste-skill) ───────────────────
+   New content appearing without motion is jarring in a live-data context.  */
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.feed-item-enter {
+  animation: slide-in 200ms var(--ease-out) forwards;
+}
+
+/* ── Cursor blink (Emil: steps(1) for terminal-style block cursor) ────────
+   animate-pulse uses opacity fade which looks blurry on a block cursor.
+   A steps(1) blink is the correct terminal behaviour.                      */
+@keyframes cursor-blink {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0; }
+}
+
+.cursor-blink {
+  animation: cursor-blink 700ms steps(1) infinite;
+}
+
+/* ── Header gradient line accent (Taste-skill: visual depth) ──────────────  */
+.header-accent {
+  position: relative;
+}
+
+.header-accent::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(225, 6, 0, var(--line-shoulder-opacity, 0.4)) calc(var(--line-center, 50%) - 30%),
+    rgba(225, 6, 0, var(--line-peak-opacity, 0.6)) var(--line-center, 50%),
+    rgba(225, 6, 0, var(--line-shoulder-opacity, 0.4)) calc(var(--line-center, 50%) + 30%),
+    transparent
+  );
+  will-change: background;
+}
+
+/* ── Race finished banner pulse (subtle, purposeful) ──────────────────────  */
+@keyframes finish-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.85; }
+}
+
+.race-finished-banner {
+  animation: finish-pulse 2s ease-in-out infinite;
+}
+
+/* ── Expandable panel system ──────────────────────────────────────────────  */
+.panel-expand-btn {
+  opacity: 0.35;
+  transition: opacity 160ms var(--ease-out),
+              transform 160ms var(--ease-out),
+              color 160ms var(--ease-out);
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  padding: 4px 6px;
+  border-radius: var(--radius-sm);
+  color: rgba(255, 255, 255, 0.5);
+  background: transparent;
+  border: none;
+}
+
+.panel-expand-btn:hover {
+  opacity: 1;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.panel-expand-btn:active {
+  transform: scale(0.9);
+}
+
+/* Drag handle for reorderable panels */
+.drag-grip {
+  cursor: grab;
+  user-select: none;
+  color: rgba(255, 255, 255, 0.25);
+  font-size: 14px;
+  line-height: 1;
+  padding: 2px 5px;
+  border-radius: var(--radius-sm);
+  transition: color 160ms var(--ease-out), background 160ms var(--ease-out);
+}
+
+.drag-grip:hover {
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.drag-grip:active {
+  cursor: grabbing;
+}
+
+/* Expanded overlay */
+.expanded-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  animation: backdrop-fade 150ms var(--ease-out) forwards;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  cursor: pointer;
+}
+
+.expanded-panel {
+  position: relative;
+  width: 100%;
+  max-width: 900px;
+  max-height: calc(100vh - 48px);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: #111119;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 32px 80px -16px rgba(0, 0, 0, 0.7),
+              0 0 0 1px rgba(255, 255, 255, 0.05);
+  animation: panel-expand-in 250ms var(--ease-out) forwards;
+  cursor: default;
+}
+
+.expanded-panel--wide {
+  max-width: 1100px;
+}
+
+@keyframes panel-expand-in {
+  from {
+    opacity: 0;
+    transform: scale(0.92) translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.expanded-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
+}
+
+.expanded-panel-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 20px 20px;
+}
+
+/* Expanded commentary — larger text for readability */
+.expanded-commentary .feed-item-expanded {
+  padding: 12px 16px;
+  font-size: 15px;
+  line-height: 1.6;
+  border-radius: var(--radius-md);
+}
+
+.expanded-commentary .feed-item-expanded .feed-driver {
+  font-size: 15px;
+}
+
+.expanded-commentary .feed-item-expanded .feed-text {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* ── Accessibility: respect reduced motion (Emil + Taste-skill) ───────────
+   Users who opt out of motion still get clear, functional UI.              */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+

@@ -53,12 +53,24 @@ state: dict = {
     "current_lap":    0,
     "total_laps":     0,
     "triggers_fired": 0,
+    "paused":         False,
     "poller":         None,
 }
+
+# Pause gate: when SET the replay advances; when CLEARED the loop blocks on
+# resume_event.wait() before the next lap, freezing telemetry without dropping
+# the WebSocket. Starts set (running).
+resume_event = asyncio.Event()
+resume_event.set()
 
 # Latest known state per driver, for /api/standings and the connect-time replay.
 #   driver_code -> {"position": int | None, "snapshot": dict}
 standings: dict[str, dict] = {}
+
+# Full per-driver lap history for the CURRENT race only (driver-focus view).
+# Lets a client that joined mid-race backfill a driver's complete history via
+# GET /api/race-history/{driver}.  driver_code -> [snapshot dict, ...] in lap order.
+race_history: dict[str, list[dict]] = {}
 
 # Dedicated pool for commentary (assemble + blocking Langflow POST). Kept separate
 # from asyncio's default executor so a burst of slow Langflow calls can never
@@ -147,7 +159,10 @@ async def replay_loop() -> None:
 
     # Fresh slate — matters when this loop is restarted by POST /api/reset.
     standings.clear()
-    state.update(running=False, current_lap=0, total_laps=0, triggers_fired=0, poller=None)
+    race_history.clear()
+    state.update(running=False, current_lap=0, total_laps=0, triggers_fired=0,
+                 paused=False, poller=None)
+    resume_event.set()   # a fresh/reset race always starts un-paused
 
     # ReplayPoller.__init__ runs a blocking FastF1 sess.load(); do it off-loop.
     # tick_s=0 disables the poller's internal time.sleep — we pace in async below.
@@ -177,6 +192,7 @@ async def replay_loop() -> None:
 
     gen = poller.stream()   # yields (snapshot, buffer_before, raw_lap_row)
     while True:
+        await resume_event.wait()   # blocks here while paused; resumes on /api/resume
         item = await asyncio.to_thread(_next, gen)
         if item is _SENTINEL:
             break
@@ -192,6 +208,11 @@ async def replay_loop() -> None:
         valid = pos is not None and pos == pos
         position = int(pos) if valid else standings.get(driver, {}).get("position")
         standings[driver] = {"position": position, "snapshot": snap}
+
+        # Record this lap in the per-driver current-race history (focus view).
+        if driver not in race_history:
+            race_history[driver] = []
+        race_history[driver].append(snap)
 
         # Telemetry goes out every lap, unconditionally.
         await broadcast({"type": "TELEMETRY_UPDATE", "payload": snap})
@@ -268,7 +289,26 @@ async def api_status():
         "total_laps":        state["total_laps"],
         "connected_clients": len(clients),
         "triggers_fired":    state["triggers_fired"],
+        "paused":            state["paused"],
     }
+
+
+@app.post("/api/pause")
+async def api_pause():
+    """Freeze the replay where it is — telemetry stops advancing, WS stays open."""
+    resume_event.clear()
+    state["paused"] = True
+    log.info("Replay paused at lap %s.", state["current_lap"])
+    return {"ok": True, "paused": True}
+
+
+@app.post("/api/resume")
+async def api_resume():
+    """Resume a paused replay from where it left off."""
+    resume_event.set()
+    state["paused"] = False
+    log.info("Replay resumed at lap %s.", state["current_lap"])
+    return {"ok": True, "paused": False}
 
 
 @app.post("/api/reset")
@@ -279,6 +319,35 @@ async def api_reset():
     start_replay()
     log.info("Race reset — replay restarting from lap 1.")
     return {"ok": True, "message": "race reset"}
+
+
+@app.get("/api/race-history/{driver}")
+async def api_race_history(driver: str):
+    """Full lap-by-lap history for one driver in the CURRENT race, plus a summary.
+
+    Lets the driver-focus view backfill a client that joined mid-race; the live
+    WebSocket TELEMETRY_UPDATE stream keeps it current after that."""
+    code = driver.upper()
+    laps = race_history.get(code, [])
+
+    lap_times = [l["lap_time_ms"] for l in laps if l.get("lap_time_ms")]
+    latest = laps[-1] if laps else {}
+
+    def _best(key):
+        vals = [l[key] for l in laps if l.get(key)]
+        return min(vals) if vals else None
+
+    summary = {
+        "laps_completed": len(laps),
+        "best_lap_ms":    min(lap_times) if lap_times else None,
+        "avg_lap_ms":     round(sum(lap_times) / len(lap_times)) if lap_times else None,
+        "best_s1_ms":     _best("sector_1_ms"),
+        "best_s2_ms":     _best("sector_2_ms"),
+        "best_s3_ms":     _best("sector_3_ms"),
+        "compound":       latest.get("compound"),
+        "tire_age":       latest.get("tire_age"),
+    }
+    return {"driver": code, "laps": laps, "summary": summary}
 
 
 @app.get("/api/standings")
@@ -302,6 +371,13 @@ async def api_history(driver: str):
     laps = await asyncio.to_thread(get_driver_history, code, track)
     pits = await asyncio.to_thread(get_pit_stops, track, code)
     return {"driver": code, "track": track, "laps": laps, "pit_stops": pits}
+
+
+@app.get("/api/race-history/{driver}")
+async def api_race_history(driver: str):
+    """Get the current race's lap history array for a given driver."""
+    code = driver.upper()
+    return race_history.get(code, [])
 
 
 @app.websocket("/ws/race")
