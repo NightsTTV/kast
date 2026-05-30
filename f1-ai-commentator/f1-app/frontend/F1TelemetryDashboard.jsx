@@ -1,6 +1,124 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import wizardsSprite from './wizards_sprite.png';
 
+// ── SVG Icons ──────────────────────────────────────────────────────────────
+const GripIcon = (props) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <circle cx="9" cy="5" r="1" fill="currentColor" />
+    <circle cx="9" cy="12" r="1" fill="currentColor" />
+    <circle cx="9" cy="19" r="1" fill="currentColor" />
+    <circle cx="15" cy="5" r="1" fill="currentColor" />
+    <circle cx="15" cy="12" r="1" fill="currentColor" />
+    <circle cx="15" cy="19" r="1" fill="currentColor" />
+  </svg>
+);
+
+const MaximizeIcon = (props) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <polyline points="15 3 21 3 21 9" />
+    <polyline points="9 21 3 21 3 15" />
+    <line x1="21" y1="3" x2="14" y2="10" />
+    <line x1="3" y1="21" x2="10" y2="14" />
+  </svg>
+);
+
+const MinimizeIcon = (props) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <polyline points="4 14 10 14 10 20" />
+    <polyline points="20 10 14 10 14 4" />
+    <line x1="14" y1="10" x2="21" y2="3" />
+    <line x1="10" y1="14" x2="3" y2="21" />
+  </svg>
+);
+
+const CloseIcon = (props) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <line x1="18" y1="6" x2="6" y2="18" />
+    <line x1="6" y1="6" x2="18" y2="18" />
+  </svg>
+);
+
+const FilterIcon = (props) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+  </svg>
+);
+
+const PlayIcon = (props) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <polygon points="5 3 19 12 5 21 5 3" />
+  </svg>
+);
+
+const PauseIcon = (props) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <rect x="6" y="4" width="4" height="16" />
+    <rect x="14" y="4" width="4" height="16" />
+  </svg>
+);
+
+const ResetIcon = (props) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M23 4v6h-6" />
+    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+  </svg>
+);
+
+const FlagIcon = (props) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
+    <line x1="4" y1="22" x2="4" y2="15" />
+  </svg>
+);
+
+const InfoIcon = (props) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <circle cx="12" cy="12" r="10" />
+    <line x1="12" y1="16" x2="12" y2="12" />
+    <line x1="12" y1="8" x2="12.01" y2="8" />
+  </svg>
+);
+
+const ChevronDownIcon = (props) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <polyline points="6 9 12 15 18 9" />
+  </svg>
+);
+
+const TrophyIcon = (props) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
+    <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
+    <path d="M4 22h16" />
+    <path d="M10 14.66V17c0 .55-.45 1-1 1H4v2h16v-2h-5c-.55 0-1-.45-1-1v-2.34" />
+    <path d="M12 2a6 6 0 0 1 6 6v5a6 6 0 0 1-6 6 6 6 0 0 1-6-6V8a6 6 0 0 1 6-6z" />
+  </svg>
+);
+
+const GaugeIcon = (props) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M12 2a10 10 0 0 0-10 10 10 10 0 0 0 9.31 9.96" />
+    <path d="M22 12A10 10 0 0 0 12.04 2" />
+    <path d="M12 12L16 8" />
+    <circle cx="12" cy="12" r="1.5" fill="currentColor" />
+    <path d="M16 16c1.5-1.5 2.5-3.5 2.5-6H14" />
+  </svg>
+);
+
+const MessageSquareIcon = (props) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+  </svg>
+);
+
+const TargetIcon = (props) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <circle cx="12" cy="12" r="10" />
+    <circle cx="12" cy="12" r="6" />
+    <circle cx="12" cy="12" r="2" />
+  </svg>
+);
+
 // ---------------------------------------------------------------------------
 // Backend (Phase 4) endpoints. Override with VITE_API_BASE if hosted elsewhere.
 //   WS:   ws://localhost:8000/ws/race   — TELEMETRY_UPDATE / COMMENTARY_UPDATE / RACE_FINISHED
@@ -146,7 +264,7 @@ const fmtGap = (ms) => {
 // ===========================================================================
 // Panel header — shared between inline and expanded views
 // ===========================================================================
-function PanelHeader({ title, expanded, onToggle, children, dragHandle }) {
+function PanelHeader({ title, icon, expanded, onToggle, children, dragHandle }) {
   return (
     <div className="flex items-center justify-between"
          style={{
@@ -155,17 +273,20 @@ function PanelHeader({ title, expanded, onToggle, children, dragHandle }) {
          }}>
       <div className="flex items-center gap-2">
         {dragHandle && (
-          <span className="drag-grip" title="Drag to rearrange" {...dragHandle}>⠿</span>
+          <span className="drag-grip flex items-center justify-center" title="Drag to rearrange" {...dragHandle}>
+            <GripIcon className="w-3.5 h-3.5 text-white/20 hover:text-white/50 transition-colors duration-150" />
+          </span>
         )}
+        {icon && <span className="text-white/40 flex items-center">{icon}</span>}
         <h2 className="text-xs font-semibold tracking-widest text-white/40">{title}</h2>
       </div>
       <div className="flex items-center gap-2">
         {children}
-        <button className="panel-expand-btn"
+        <button className="panel-expand-btn flex items-center justify-center focus-visible:ring-1 focus-visible:ring-accent focus-visible:outline-none"
                 onClick={onToggle}
                 aria-label={expanded ? `Collapse ${title}` : `Expand ${title}`}
                 title={expanded ? 'Collapse' : 'Expand'}>
-          {expanded ? '⤓' : '⤢'}
+          {expanded ? <MinimizeIcon className="w-3.5 h-3.5" /> : <MaximizeIcon className="w-3.5 h-3.5" />}
         </button>
       </div>
     </div>
@@ -179,7 +300,7 @@ function GlossaryFooter() {
   const [open, setOpen] = useState(false);
   return (
     <div style={{ flexShrink: 0, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-      <button className="btn-press"
+      <button className="btn-press focus-visible:ring-1 focus-visible:ring-accent focus-visible:outline-none"
               onClick={() => setOpen((o) => !o)}
               style={{
                 width: '100%', display: 'flex', alignItems: 'center',
@@ -188,9 +309,12 @@ function GlossaryFooter() {
                 color: 'rgba(255,255,255,0.4)', fontSize: 11, fontWeight: 600,
                 letterSpacing: '0.12em', textTransform: 'uppercase',
               }}>
-        <span>ⓘ&nbsp;&nbsp;What do these mean?</span>
-        <span style={{ display: 'inline-block', transition: 'transform 160ms var(--ease-out)',
-                       transform: open ? 'rotate(180deg)' : 'none' }}>⌄</span>
+        <span className="flex items-center gap-1.5">
+          <InfoIcon className="w-3.5 h-3.5" />
+          <span>What do these mean?</span>
+        </span>
+        <ChevronDownIcon className="w-3.5 h-3.5 transition-transform duration-150"
+                         style={{ transform: open ? 'rotate(180deg)' : 'none' }} />
       </button>
       {open && (
         <div className="feed-item-enter"
@@ -457,10 +581,20 @@ function FocusPanel({ focusDriver, setFocusDriver, standings, raceHistory, expan
   const filterBtn = (
     <button
       onClick={() => setShowSelector((prev) => !prev)}
-      className="btn-press text-[10px] bg-white/5 hover:bg-white/10 px-2 py-0.5 font-bold tracking-wider rounded text-white/80"
+      className="btn-press text-[10px] bg-white/5 hover:bg-white/10 px-2.5 py-1 font-bold tracking-wider rounded text-white/80 flex items-center gap-1 focus-visible:ring-1 focus-visible:ring-accent focus-visible:outline-none"
       style={{ borderRadius: 'var(--radius-sm)' }}
     >
-      {showSelector ? '✕ CLOSE' : '🔍 FILTER'}
+      {showSelector ? (
+        <>
+          <CloseIcon className="w-3 h-3" />
+          <span>CLOSE</span>
+        </>
+      ) : (
+        <>
+          <FilterIcon className="w-3 h-3" />
+          <span>FILTER</span>
+        </>
+      )}
     </button>
   );
 
@@ -476,7 +610,7 @@ function FocusPanel({ focusDriver, setFocusDriver, standings, raceHistory, expan
                 setFocusDriver(e.target.value || null);
                 setShowSelector(false);
               }}
-              className="bg-[#212130] text-white border border-white/10 rounded px-2 py-1 text-xs font-semibold focus:outline-none focus:border-white/20 cursor-pointer flex-1"
+              className="bg-[#212130] text-white border border-white/10 rounded px-2 py-1 text-xs font-semibold focus:outline-none focus:border-white/20 cursor-pointer flex-1 focus-visible:ring-1 focus-visible:ring-accent"
               style={{ borderRadius: 'var(--radius-sm)' }}
             >
               <option value="">-- Choose Driver --</option>
@@ -489,7 +623,7 @@ function FocusPanel({ focusDriver, setFocusDriver, standings, raceHistory, expan
           </div>
         )}
         <div className="text-center py-12 text-white/30 flex flex-col items-center justify-center gap-2">
-          <span className="text-3xl">🏁</span>
+          <FlagIcon className="w-8 h-8 text-white/20" />
           <p className="text-xs font-semibold tracking-wider">NO DRIVER SELECTED</p>
           <p className="text-[11px] text-white/20 max-w-[200px] leading-normal">
             Click a standings row or click the filter button to choose a driver.
@@ -497,10 +631,11 @@ function FocusPanel({ focusDriver, setFocusDriver, standings, raceHistory, expan
           {!showSelector && (
             <button
               onClick={() => setShowSelector(true)}
-              className="btn-press mt-2 text-[10px] bg-[#e10600] hover:bg-[#ff1e18] text-white font-bold tracking-wider px-3 py-1.5 rounded"
+              className="btn-press mt-2 text-[10px] bg-[#e10600] hover:bg-[#ff1e18] text-white font-bold tracking-wider px-3 py-1.5 rounded flex items-center gap-1 focus-visible:ring-1 focus-visible:ring-accent focus-visible:outline-none"
               style={{ borderRadius: 'var(--radius-sm)' }}
             >
-              CHOOSE DRIVER
+              <FilterIcon className="w-3 h-3" />
+              <span>CHOOSE DRIVER</span>
             </button>
           )}
         </div>
@@ -540,7 +675,7 @@ function FocusPanel({ focusDriver, setFocusDriver, standings, raceHistory, expan
                 setFocusDriver(e.target.value || null);
                 setShowSelector(false);
               }}
-              className="bg-[#212130] text-white border border-white/10 rounded px-2 py-1 text-xs font-semibold focus:outline-none focus:border-white/20 cursor-pointer flex-1"
+              className="bg-[#212130] text-white border border-white/10 rounded px-2 py-1 text-xs font-semibold focus:outline-none focus:border-white/20 cursor-pointer flex-1 focus-visible:ring-1 focus-visible:ring-accent"
               style={{ borderRadius: 'var(--radius-sm)' }}
             >
               <option value="">-- Choose Driver --</option>
@@ -555,10 +690,11 @@ function FocusPanel({ focusDriver, setFocusDriver, standings, raceHistory, expan
                 setFocusDriver(null);
                 setShowSelector(false);
               }}
-              className="btn-press px-2.5 py-1 text-[10px] font-bold tracking-widest text-white/60 bg-white/5 hover:bg-white/10"
+              className="btn-press px-2.5 py-1 text-[10px] font-bold tracking-widest text-white/60 bg-white/5 hover:bg-white/10 flex items-center gap-1 focus-visible:ring-1 focus-visible:ring-accent focus-visible:outline-none"
               style={{ borderRadius: 'var(--radius-sm)' }}
             >
-              ✕ CLEAR
+              <CloseIcon className="w-3 h-3" />
+              <span>CLEAR</span>
             </button>
           </div>
         )}
@@ -642,15 +778,18 @@ function FocusPanel({ focusDriver, setFocusDriver, standings, raceHistory, expan
     return (
       <>
         <div className="expanded-panel-header">
-          <h2 className="text-sm font-semibold tracking-widest text-white/50">{titleText}</h2>
+          <div className="flex items-center gap-2">
+            <TargetIcon className="w-4 h-4 text-white/40" />
+            <h2 className="text-sm font-semibold tracking-widest text-white/50">{titleText}</h2>
+          </div>
           <div className="flex items-center gap-3">
             {filterBtn}
             <button
-              className="btn-icon-press text-white/35 text-lg leading-none p-1"
+              className="btn-icon-press text-white/35 text-lg leading-none p-1 flex items-center justify-center focus-visible:ring-1 focus-visible:ring-accent focus-visible:outline-none"
               onClick={onToggle}
               aria-label="Collapse telemetry"
             >
-              ✕
+              <CloseIcon className="w-4 h-4" />
             </button>
           </div>
         </div>
@@ -661,7 +800,7 @@ function FocusPanel({ focusDriver, setFocusDriver, standings, raceHistory, expan
 
   return (
     <>
-      <PanelHeader title={titleText} expanded={false} dragHandle={dragHandle} onToggle={onToggle}>
+      <PanelHeader title={titleText} icon={<TargetIcon className="w-4 h-4" />} expanded={false} dragHandle={dragHandle} onToggle={onToggle}>
         {filterBtn}
       </PanelHeader>
       {content}
@@ -981,13 +1120,14 @@ export default function F1Dashboard() {
       return (
         <section key="standings" className="overflow-hidden"
                  style={panelStyle('standings')} {...dropProps('standings')}>
-          <PanelHeader title="STANDINGS" expanded={false} dragHandle={handleProps('standings')}
+          <PanelHeader title="STANDINGS" icon={<TrophyIcon className="w-4 h-4" />} expanded={false} dragHandle={handleProps('standings')}
                        onToggle={() => toggleExpand('standings')}>
             {focusDriver && (
               <button onClick={() => setFocusDriver(null)}
-                      className="btn-press text-[10px] bg-white/5 hover:bg-white/10 px-2 py-0.5 font-bold tracking-wider rounded text-white/80"
+                      className="btn-press text-[10px] bg-white/5 hover:bg-white/10 px-2.5 py-1 font-bold tracking-wider rounded text-white/80 focus-visible:ring-1 focus-visible:ring-accent focus-visible:outline-none flex items-center gap-1"
                       style={{ borderRadius: 'var(--radius-sm)' }}>
-                ✕ SHOW ALL
+                <CloseIcon className="w-3 h-3" />
+                <span>SHOW ALL</span>
               </button>
             )}
           </PanelHeader>
@@ -999,7 +1139,7 @@ export default function F1Dashboard() {
       return (
         <div key="telemetry" className="p-4"
              style={panelStyle('telemetry')} {...dropProps('telemetry')}>
-          <PanelHeader title="LATEST LAP" expanded={false} dragHandle={handleProps('telemetry')}
+          <PanelHeader title="LATEST LAP" icon={<GaugeIcon className="w-4 h-4" />} expanded={false} dragHandle={handleProps('telemetry')}
                        onToggle={() => toggleExpand('telemetry')} />
           <div className="mt-3"><TelemetryDetail t={latestTelemetry} expanded={false} /></div>
         </div>
@@ -1026,7 +1166,7 @@ export default function F1Dashboard() {
       return (
         <div key="commentary" className="p-4 flex flex-col gap-3"
              style={panelStyle('commentary')} {...dropProps('commentary')}>
-          <PanelHeader title="COMMENTARY" expanded={false} dragHandle={handleProps('commentary')}
+          <PanelHeader title="COMMENTARY" icon={<MessageSquareIcon className="w-4 h-4" />} expanded={false} dragHandle={handleProps('commentary')}
                        onToggle={() => toggleExpand('commentary')}>
             <span className="text-[10px] text-white/25 tabular-nums font-medium">
               {feed.length} msg{feed.length !== 1 ? 's' : ''}
@@ -1064,7 +1204,7 @@ export default function F1Dashboard() {
             <span className="text-white/60">{connected ? 'LIVE' : 'OFFLINE'}</span>
           </div>
           <button onClick={togglePause}
-                  className="btn-press px-3 py-1.5 text-xs font-bold tracking-widest"
+                  className="btn-press px-3 py-1.5 text-xs font-bold tracking-widest flex items-center gap-1.5 focus-visible:ring-1 focus-visible:ring-accent focus-visible:outline-none"
                   aria-label={status.paused ? 'Resume race' : 'Pause race'}
                   style={{
                     borderRadius: 'var(--radius-sm)',
@@ -1072,10 +1212,20 @@ export default function F1Dashboard() {
                     color: status.paused ? '#0a0a0f' : '#fff',
                     cursor: 'pointer',
                   }}>
-            {status.paused ? '▶ RESUME' : '❚❚ PAUSE'}
+            {status.paused ? (
+              <>
+                <PlayIcon className="w-3.5 h-3.5 fill-current" />
+                <span>RESUME</span>
+              </>
+            ) : (
+              <>
+                <PauseIcon className="w-3.5 h-3.5 fill-current" />
+                <span>PAUSE</span>
+              </>
+            )}
           </button>
           <button onClick={resetRace} disabled={resetting}
-                  className="btn-press px-3 py-1.5 text-xs font-bold tracking-widest"
+                  className="btn-press px-3 py-1.5 text-xs font-bold tracking-widest flex items-center gap-1.5 focus-visible:ring-1 focus-visible:ring-accent focus-visible:outline-none"
                   style={{
                     borderRadius: 'var(--radius-sm)',
                     background: resetting ? '#333' : '#e10600',
@@ -1083,14 +1233,19 @@ export default function F1Dashboard() {
                     cursor: resetting ? 'not-allowed' : 'pointer',
                     opacity: resetting ? 0.5 : 1,
                   }}>
-            {resetting ? 'RESETTING…' : 'RESET RACE'}
+            <ResetIcon className={`w-3.5 h-3.5 ${resetting ? 'animate-spin' : ''}`} />
+            <span>{resetting ? 'RESETTING…' : 'RESET RACE'}</span>
           </button>
         </div>
       </header>
 
       {raceFinished && (
-        <div className="race-finished-banner text-center py-2 font-bold tracking-widest"
-             style={{ background: '#e10600' }}>🏁 RACE FINISHED 🏁</div>
+        <div className="race-finished-banner text-center py-2 font-bold tracking-widest flex items-center justify-center gap-2"
+             style={{ background: '#e10600' }}>
+          <FlagIcon className="w-4 h-4 text-white" />
+          <span>RACE FINISHED</span>
+          <FlagIcon className="w-4 h-4 text-white" />
+        </div>
       )}
 
       {/* Panels are reorderable: drag a panel by its ⠿ grip onto another.
@@ -1114,18 +1269,24 @@ export default function F1Dashboard() {
       {expanded === 'standings' && (
         <ExpandedOverlay onClose={closeExpand} wide>
           <div className="expanded-panel-header">
-            <h2 className="text-sm font-semibold tracking-widest text-white/50">STANDINGS</h2>
+            <div className="flex items-center gap-2">
+              <TrophyIcon className="w-4 h-4 text-white/40" />
+              <h2 className="text-sm font-semibold tracking-widest text-white/50">STANDINGS</h2>
+            </div>
             <div className="flex items-center gap-3">
               {focusDriver && (
                 <button onClick={() => setFocusDriver(null)}
-                        className="btn-press text-[10px] bg-white/5 hover:bg-white/10 px-2.5 py-1 font-bold tracking-wider rounded text-white/80"
+                        className="btn-press text-[10px] bg-white/5 hover:bg-white/10 px-2.5 py-1 font-bold tracking-wider rounded text-white/80 focus-visible:ring-1 focus-visible:ring-accent focus-visible:outline-none flex items-center gap-1"
                         style={{ borderRadius: 'var(--radius-sm)' }}>
-                  ✕ SHOW ALL
+                  <CloseIcon className="w-3 h-3" />
+                  <span>SHOW ALL</span>
                 </button>
               )}
               <span className="text-xs text-white/30 tabular-nums">{standings.length} drivers</span>
-              <button className="btn-icon-press text-white/35 text-lg leading-none p-1"
-                      onClick={closeExpand} aria-label="Collapse standings">✕</button>
+              <button className="btn-icon-press text-white/35 text-lg leading-none p-1 flex items-center justify-center focus-visible:ring-1 focus-visible:ring-accent focus-visible:outline-none"
+                      onClick={closeExpand} aria-label="Collapse standings">
+                <CloseIcon className="w-4 h-4" />
+              </button>
             </div>
           </div>
           <div className="expanded-panel-body">
@@ -1138,9 +1299,14 @@ export default function F1Dashboard() {
       {expanded === 'telemetry' && (
         <ExpandedOverlay onClose={closeExpand}>
           <div className="expanded-panel-header">
-            <h2 className="text-sm font-semibold tracking-widest text-white/50">LATEST LAP</h2>
-            <button className="btn-icon-press text-white/35 text-lg leading-none p-1"
-                    onClick={closeExpand} aria-label="Collapse telemetry">✕</button>
+            <div className="flex items-center gap-2">
+              <GaugeIcon className="w-4 h-4 text-white/40" />
+              <h2 className="text-sm font-semibold tracking-widest text-white/50">LATEST LAP</h2>
+            </div>
+            <button className="btn-icon-press text-white/35 text-lg leading-none p-1 flex items-center justify-center focus-visible:ring-1 focus-visible:ring-accent focus-visible:outline-none"
+                    onClick={closeExpand} aria-label="Collapse telemetry">
+              <CloseIcon className="w-4 h-4" />
+            </button>
           </div>
           <div className="expanded-panel-body">
             <TelemetryDetail t={latestTelemetry} expanded />
@@ -1166,11 +1332,16 @@ export default function F1Dashboard() {
       {expanded === 'commentary' && (
         <ExpandedOverlay onClose={closeExpand} wide>
           <div className="expanded-panel-header">
-            <h2 className="text-sm font-semibold tracking-widest text-white/50">COMMENTARY</h2>
+            <div className="flex items-center gap-2">
+              <MessageSquareIcon className="w-4 h-4 text-white/40" />
+              <h2 className="text-sm font-semibold tracking-widest text-white/50">COMMENTARY</h2>
+            </div>
             <div className="flex items-center gap-3">
               <span className="text-xs text-white/30 tabular-nums">{feed.length} messages</span>
-              <button className="btn-icon-press text-white/35 text-lg leading-none p-1"
-                      onClick={closeExpand} aria-label="Collapse commentary">✕</button>
+              <button className="btn-icon-press text-white/35 text-lg leading-none p-1 flex items-center justify-center focus-visible:ring-1 focus-visible:ring-accent focus-visible:outline-none"
+                      onClick={closeExpand} aria-label="Collapse commentary">
+                <CloseIcon className="w-4 h-4" />
+              </button>
             </div>
           </div>
           <div className="expanded-panel-body expanded-commentary">
@@ -1206,9 +1377,11 @@ export default function F1Dashboard() {
                 <span style={{ color: teamColor(selected.driver) }}>{driverName(selected.driver)}</span>
                 <span className="text-white/35 text-sm ml-2 font-medium">{selected.track}</span>
               </h3>
-              <button className="btn-icon-press text-white/35 text-lg leading-none p-1"
+              <button className="btn-icon-press text-white/35 text-lg leading-none p-1 flex items-center justify-center focus-visible:ring-1 focus-visible:ring-accent focus-visible:outline-none"
                       onClick={() => setSelected(null)}
-                      aria-label="Close driver history">✕</button>
+                      aria-label="Close driver history">
+                <CloseIcon className="w-4 h-4" />
+              </button>
             </div>
             <div className="grid grid-cols-2 gap-3 text-sm">
               <Info label="Historical laps" value={selected.laps?.length ?? 0} />
@@ -1220,8 +1393,8 @@ export default function F1Dashboard() {
                 {selected.pit_stops.slice(-4).map((p, i) => (
                   <div key={i} className="flex justify-between text-sm py-1.5"
                        style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-                    <span className="text-white/50">{p.year} · lap {p.lap_number}</span>
-                    <span className="tabular-nums font-medium">{(p.duration_ms / 1000).toFixed(1)}s</span>
+                     <span className="text-white/50">{p.year} · lap {p.lap_number}</span>
+                     <span className="tabular-nums font-medium">{(p.duration_ms / 1000).toFixed(1)}s</span>
                   </div>
                 ))}
               </div>
